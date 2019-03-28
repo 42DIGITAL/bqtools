@@ -7,7 +7,6 @@ import pickle
 
 import pandas as pd
 import pyarrow
-import pyarrow.parquet
 from google.cloud import bigquery
 
 import bqconvert
@@ -197,11 +196,9 @@ class BQTable(object):
     def append_row(self, row, convert_none=False):
         print('append_row')
         if isinstance(row, dict):
-            list_row = []
-            schema_field_names = [field.name for field in self.get_schema()]
-            for name in schema_field_names:
-                list_row.append(row.get(name))
-                # no warning if row items < schema items
+            schema = self.get_schema()
+            row = [row.get(field.name) for field in schema]
+            # no warning if row items < schema items
         elif isinstance(row, list):
             list_row = row
         self.set_data(rows=[list_row], mode='append', convert_none=convert_none)
@@ -214,7 +211,7 @@ class BQTable(object):
         print('get_data_columns')
         return self._data_columns
 
-    def get_data_rows(self, n=None):
+    def get_data_rows(self, n=10):
         print('get_data_rows')
         columns = self.get_data_columns()
         if columns:
@@ -304,7 +301,7 @@ class BQTable(object):
         columns = [[] for n in range(schema_field_count)]
         for row_counter, row in enumerate(rows):
             if isinstance(row, dict):
-                row = list(row.values())
+                row = [row.get(field.name) for field in schema]
             
             row_item_count = len(row)
             if row_item_count > schema_field_count:
