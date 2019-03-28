@@ -6,7 +6,6 @@ import gzip
 import pickle
 
 import pandas as pd
-import pyarrow
 from google.cloud import bigquery
 
 import bqconvert
