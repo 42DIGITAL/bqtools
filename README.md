@@ -39,7 +39,7 @@ table = bqorm.BQTable(
 table = bqorm.BQTable(
     schema=schema, 
     rows=[
-        {'number': 1, 'text:' 'a'}, 
+        {'number': 1, 'text': 'a'}, 
         {'number': 2, 'text': 'b'},
         ...
     ]
@@ -48,8 +48,13 @@ table = bqorm.BQTable(
 
 ### View data
 ```python
-print(table.get_data_columns()) # list of all columns
+print(table.get_data_columns())  # list of all columns
 print(table.get_data_rows(n=10)) # list of first n rows
+
+# convert to pandas.DataFrame
+df = table.to_df()               
+# warning: pandas dtypes may be inconsistent 
+# with BigQuery Schema field_types
 ```
 
 ### Append data
