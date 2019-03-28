@@ -1,14 +1,11 @@
 # Python Micro-ORM for BigQuery
 
-Map Python object to BigQuery Table with Schema and Data through
-+ Variables (name, type, mode='NULLABLE', description=None)
-+ Type checking / inference
+### Why?
+While [BigQuery](https://cloud.google.com/bigquery/) is not a database suited for transactional operations, data wrangling and regularly updating datasets can make ORM-style features very useful. 
 
-Supported workflows:
-- Create Object with Schema and add Data with Type checks
-- Upload Object to Table (create, overwrite, append), maybe streaming
-- Download Table Schema (and opt. Data) to Object
-- Modify Object Schema
+### What?
+`bqorm` provides a light-weight solution to explicit schema management with python-native types (unlike pandas dtype) and 
+some convenient type checking, inference and conversions. Table-objects created by `bqorm` can be read from BigQuery, stored locally, read from a local file and written to BigQuery. Table schemas can be changed and data can be added or modified.
 
 ## Examples:
 ### Create basic tables
