@@ -75,11 +75,14 @@ table = bqorm.BQTable(
 
 ### Modify table schema
 ```python
-schema = [
+# change column order and field_type
+new_schema = [
     {'name': 'text', 'field_type': 'STRING'},
     {'name': 'number', 'field_type': 'FLOAT'},
 ]
-table.set_schema(schema)
+table.set_schema(new_schema)
+
+# change column names
 table.rename_schema_fields({'number': 'decimal'})
 ```
 
