@@ -197,7 +197,7 @@ class BQTable(object):
         print('append_row')
         if isinstance(row, dict):
             schema = self.get_schema()
-            row = [row.get(field.name) for field in schema]
+            list_row = [row.get(field.name) for field in schema]
             # no warning if row items < schema items
         elif isinstance(row, list):
             list_row = row
