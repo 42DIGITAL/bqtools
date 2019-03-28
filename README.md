@@ -19,6 +19,9 @@ schema = [
     {'name': 'number', 'field_type': 'INTEGER'},
     {'name': 'text', 'field_type': 'STRING'},
 ]
+# valid BigQuery types see: 
+# https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types
+# geo, struct and array are currently not/not fully supported
 
 # data = columns of lists
 table = bqorm.BQTable(
