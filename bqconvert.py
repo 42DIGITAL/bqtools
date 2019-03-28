@@ -5,7 +5,6 @@ import warnings
 import json
 
 import dateutil
-import pyarrow
 
 NoneType = type(None)
 
@@ -167,19 +166,3 @@ bq_field_types = {
     'RECORD': value_to_struct,
     'GEOGRAPHY': value_to_geography
 }
-
-# pq_field_types = {
-#     'INTEGER': pyarrow.int64(),
-#     'FLOAT': pyarrow.float64(),
-#     'NUMERIC': pyarrow.decimal128(precision=9),
-#     'BOOLEAN': pyarrow.bool_(),
-#     'STRING': pyarrow.string(),
-#     'BYTES': pyarrow.binary(),
-#     'DATE': pyarrow.date64(),
-#     'DATETIME': pyarrow.date64(),
-#     'TIME': pyarrow.time64('ns'),
-#     'TIMESTAMP': pyarrow.timestamp('ns'),
-#     'STRUCT': pyarrow.struct({}),
-#     'RECORD': pyarrow.struct({}),
-#     'GEOGRAPHY': pyarrow.string(),
-# }
