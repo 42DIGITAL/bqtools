@@ -39,7 +39,7 @@ table = bqorm.BQTable(
 table = bqorm.BQTable(
     schema=schema, 
     rows=[
-        {'number': 1, 'text:' 'a'}, 
+        {'number': 1, 'text': 'a'}, 
         {'number': 2, 'text': 'b'},
         ...
     ]
