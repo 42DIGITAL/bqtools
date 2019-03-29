@@ -23,19 +23,13 @@ schema = [
 # data = columns of lists
 table = bqorm.BQTable(
     schema=schema, 
-    columns=[[1, 2, 3, 4], ['a', 'b', 'c', 'd']]
-)
-
-# data = rows of lists
-table = bqorm.BQTable(
-    schema=schema, 
-    rows=[[1, 'a'], [2, 'b'], [3, 'c'], [4, 'd']]
+    data=[[1, 2, 3, 4], ['a', 'b', 'c', 'd']]
 )
 
 # data = rows of dicts
 table = bqorm.BQTable(
     schema=schema, 
-    rows=[
+    data=[
         {'number': 1, 'text': 'a'}, 
         {'number': 2, 'text': 'b'},
         ...
@@ -45,8 +39,8 @@ table = bqorm.BQTable(
 
 ### View data
 ```python
-print(table.get_data_columns())  # list of all columns
-print(table.get_data_rows(n=10)) # list of first n rows
+print(table.data)       # list of all columns
+print(table.rows(n=10)) # list of first n rows
 
 # convert to pandas.DataFrame
 df = table.to_df()               
@@ -56,22 +50,21 @@ df = table.to_df()
 
 ### Append data
 ```python
-row = {'number': 5, 'text': 'e'}
-table.append_row(row)
+rows = [{'number': 5, 'text': 'e'}]
+table.append(rows)
 
-row = [6, 'f']
-table.append_row(row)
+row = [[6, 'f']]
+table.append(rows)
 ```
 
 ### Load table from BQ
 ```python
 # requires environment variable GOOGLE_APPLICATION_CREDENTIALS 
 # or parameter credentials='path-to-credentials.json'
-table = bqorm.BQTable(
-    table_ref='project_id.dataset_id.table_id',
-    query_data=True,   # default, set to False to prevent setting data
-    query_schema=True, # default, set to False to prevent setting schema
-    limit=10           # default, set to None to request full table
+table = bqorm.read_bq(
+    table_ref='project_id.dataset_id.new_table_id', 
+    limit=10,           # limit query rows
+    schema_only=False   # prevent requesting and setting data
 )
 ```
 
@@ -82,26 +75,24 @@ new_schema = [
     {'name': 'text', 'field_type': 'STRING'},
     {'name': 'number', 'field_type': 'FLOAT'},
 ]
-table.set_schema(new_schema)
+table.schema(new_schema)
 
 # change column names
-table.rename_schema_fields({'number': 'decimal'})
+table.rename(columns={'number': 'decimal'})
 ```
 
 ### Write table to BQ
 ```python
-table.set_table_ref(
-    table_ref='project_id.dataset_id.new_table_id', 
-    upload_data=True, 
-    upload_mode='append'
-)
+# requires environment variable GOOGLE_APPLICATION_CREDENTIALS
+# or parameter credentials='path-to-credentials.json'
+table.to_bq(table_ref, mode='append')
 ```
 
 ### Persist tables locally
 ```python
 # write to local file (compressed binary format)
-table.to_file('local_table.bqt')
+table.save('local_table.bqt')
 
 # load from local file
-table = bqorm.BQTable(load_file='local_table.bqt')
+table = bqorm.load('local_table.bqt')
 ```
