@@ -1,16 +1,21 @@
-# Python Micro-ORM for BigQuery
+# Python Tools for BigQuery
 
 ### Why?
-While [BigQuery](https://cloud.google.com/bigquery/) is not a database suited for transactional operations, data wrangling and regularly updating datasets can make ORM-style features very useful. 
+For data collection and data exploration, we like to work with [BigQuery](https://cloud.google.com/bigquery/). But we have not found a python library, to easily handle recurring tasks like adding new data (of potentially inconsistent schema) and schema migrations. So we took a couple of our solutions for those tasks and put them into this library.
 
 ### What?
-`bqorm` provides a light-weight solution to explicit schema management with python-native types (unlike pandas dtype) and 
-some convenient type checking, inference and conversions. Table-objects created by `bqorm` can be read from BigQuery, stored locally, read from a local file and written to BigQuery. Table schemas can be changed and data can be added or modified.
+`bqtools` provides a light-weight solution to explicit schema management with python-native types (unlike pandas dtype) and 
+some convenient type checking, inference and conversions. Table-objects created by `bqtools` can be read from BigQuery, stored locally, read from a local file and written to BigQuery. Table schemas can be changed and data can be added or modified.
+
+### Install
+```bash
+pip install --upgrade bqtools
+```
 
 ## Examples:
 ### Create basic tables
 ```python
-import bqorm
+import bqtools
 
 schema = [
     {'name': 'number', 'field_type': 'INTEGER'},
@@ -21,13 +26,13 @@ schema = [
 # geo, struct and array are currently not/not fully supported
 
 # data = columns of lists
-table = bqorm.BQTable(
+table = bqtools.BQTable(
     schema=schema, 
     data=[[1, 2, 3, 4], ['a', 'b', 'c', 'd']]
 )
 
 # data = rows of dicts
-table = bqorm.BQTable(
+table = bqtools.BQTable(
     schema=schema, 
     data=[
         {'number': 1, 'text': 'a'}, 
@@ -57,14 +62,14 @@ row = [[6, 'f']]
 table.append(rows)
 ```
 
-### Load table from BQ
+### Load table from BigQquery
 ```python
 # requires environment variable GOOGLE_APPLICATION_CREDENTIALS 
 # or parameter credentials='path-to-credentials.json'
-table = bqorm.read_bq(
+table = bqtools.read_bq(
     table_ref='project_id.dataset_id.new_table_id', 
     limit=10,           # limit query rows
-    schema_only=False   # prevent requesting and setting data
+    schema_only=False   # set True to only add data
 )
 ```
 
@@ -81,7 +86,7 @@ table.schema(new_schema)
 table.rename(columns={'number': 'decimal'})
 ```
 
-### Write table to BQ
+### Write table to BigQuery
 ```python
 # requires environment variable GOOGLE_APPLICATION_CREDENTIALS
 # or parameter credentials='path-to-credentials.json'
@@ -94,5 +99,5 @@ table.to_bq(table_ref, mode='append')
 table.save('local_table.bqt')
 
 # load from local file
-table = bqorm.load('local_table.bqt')
+table = bqtools.load('local_table.bqt')
 ```
