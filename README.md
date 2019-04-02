@@ -15,7 +15,7 @@ pip install --upgrade bqtools
 ## Examples:
 ### Create basic tables
 ```python
-import bqtools
+from fourtytwo import bqtools
 
 schema = [
     {'name': 'number', 'field_type': 'INTEGER'},
