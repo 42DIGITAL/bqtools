@@ -8,7 +8,7 @@ import random
 import pandas as pd
 from google.cloud import bigquery
 
-from fourtytwo import bqtools.conversions
+from fourtytwo.bqtools import conversions
 
 DEBUG = False
 if DEBUG:
@@ -17,7 +17,7 @@ if DEBUG:
 
 def load(filename):
     if DEBUG:
-        logging.debug('bqorm.load({})'.format(filename))
+        logging.debug('bqtools.load({})'.format(filename))
 
     with gzip.open(filename, 'rb') as f:
         table_data = pickle.load(f)
@@ -27,14 +27,9 @@ def load(filename):
     table = BQTable(schema=table_data['schema'], data=table_data['data'])
     return table
 
-#def read_csv(filename):
-#    if DEBUG:
-#        logging.debug('bqorm.read_csv({})'.format(filename))
-#    pass
-
 def read_bq(table_ref, credentials=None, limit=10, schema_only=False, columns=None):
     if DEBUG:
-        logging.debug('bqorm.read_bq({})'.format(table_ref))
+        logging.debug('bqtools.read_bq({})'.format(table_ref))
     
     table = BQTable()
 
@@ -64,7 +59,7 @@ def read_bq(table_ref, credentials=None, limit=10, schema_only=False, columns=No
 
 def _rows_to_columns(rows, schema):
     if DEBUG:
-        logging.debug('bqorm._rows_to_columns()')
+        logging.debug('bqtools._rows_to_columns()')
 
     schema_len = len(schema)
     columns = [[] for n in range(schema_len)]
@@ -84,7 +79,7 @@ def _rows_to_columns(rows, schema):
 
 def _columns_to_rows(columns, schema, n=None, row_type='list'):
     if DEBUG:
-        logging.debug('bqorm._columns_to_rows()')
+        logging.debug('bqtools._columns_to_rows()')
     
     if not columns:
         return []
@@ -108,7 +103,7 @@ def _columns_to_rows(columns, schema, n=None, row_type='list'):
 class BQTable(object):
     def __init__(self, schema=None, data=None):
         if DEBUG:
-            logging.debug('bqorm.BQTable.__init__')
+            logging.debug('bqtools.BQTable.__init__')
 
         self.schema = schema if schema else []
         self.data = data if data else []
@@ -121,7 +116,7 @@ class BQTable(object):
     
     def __setattr__(self, name, value):
         if DEBUG:
-            logging.debug('bqorm.BQTable.set {}'.format(name))
+            logging.debug('bqtools.BQTable.set {}'.format(name))
 
         if name == 'schema':
             self._set_schema(value)
@@ -130,7 +125,7 @@ class BQTable(object):
 
     def __getattr__(self, name):
         if DEBUG:
-            logging.debug('bqorm.BQTable.get {}'.format(name))
+            logging.debug('bqtools.BQTable.get {}'.format(name))
         
         if name == 'schema':
             return self._schema
@@ -139,7 +134,7 @@ class BQTable(object):
 
     def _set_schema(self, schema):
         if DEBUG:
-            logging.debug('bqorm.BQTable._set_schema()')
+            logging.debug('bqtools.BQTable._set_schema()')
 
         new_schema = []
         for field in schema:
@@ -161,7 +156,7 @@ class BQTable(object):
 
     def _set_data(self, data):
         if DEBUG:
-            logging.debug('bqorm.BQTable._set_data()')
+            logging.debug('bqtools.BQTable._set_data()')
         
         if data and isinstance(data, list):
             if isinstance(data[0], dict):
@@ -171,7 +166,7 @@ class BQTable(object):
     
     def _move_columns(self, schema):
         if DEBUG:
-            logging.debug('bqorm.BQTable._move_columns()')
+            logging.debug('bqtools.BQTable._move_columns()')
 
         old_field_names = [field.name for field in self.schema]
         new_field_names = [field.name for field in schema]
@@ -180,7 +175,7 @@ class BQTable(object):
 
     def _rename_columns(self, mapping):
         if DEBUG:
-            logging.debug('bqorm.BQTable._rename_columns()')
+            logging.debug('bqtools.BQTable._rename_columns()')
 
         new_schema = [field for field in self.schema]
         old_field_names = [field.name for field in self.schema]
@@ -198,7 +193,7 @@ class BQTable(object):
 
     def _typecheck(self, schema=None, data=None):
         if DEBUG:
-            logging.debug('bqorm.BQTable._typecheck()')
+            logging.debug('bqtools.BQTable._typecheck()')
         
         schema = schema if schema else self.schema
         data = data if data else self.data
@@ -207,7 +202,7 @@ class BQTable(object):
             typechecked_columns = []
             for index, field in enumerate(schema):
                 typechecked_columns.append(
-                    bqorm.conversions.convert(
+                    conversions.convert(
                         data[index], 
                         field.field_type,
                         field.mode
@@ -219,7 +214,7 @@ class BQTable(object):
 
     def rename(self, columns):
         if DEBUG:
-            logging.debug('bqorm.BQTable.rename()')
+            logging.debug('bqtools.BQTable.rename()')
 
         self._rename_columns(mapping=columns)
     
@@ -232,7 +227,7 @@ class BQTable(object):
 
     def rows(self, n=None, row_type='list'):
         if DEBUG:
-            logging.debug('bqorm.BQTable.rows()')
+            logging.debug('bqtools.BQTable.rows()')
 
         rows = _columns_to_rows(
             columns=self.data, 
@@ -244,7 +239,7 @@ class BQTable(object):
     
     def save(self, filename):
         if DEBUG:
-            logging.debug('bqorm.BQTable.save()')
+            logging.debug('bqtools.BQTable.save()')
         
         schema_dicts = [
             {
@@ -266,14 +261,14 @@ class BQTable(object):
     
     def to_df(self):
         if DEBUG:
-            logging.debug('bqorm.BQTable.to_df()')
+            logging.debug('bqtools.BQTable.to_df()')
         
         data = {field.name: self.data[index] for index, field in enumerate(self.schema)}
         return pd.DataFrame(data)
 
     def to_bq(self, table_ref, credentials=None, mode='append'):
         if DEBUG:
-            logging.debug('bqorm.BQTable.to_bq({})'.format(table_ref))
+            logging.debug('bqtools.BQTable.to_bq({})'.format(table_ref))
 
         if credentials:
             client = bigquery.Client.from_service_account_json(credentials)
@@ -305,7 +300,7 @@ class BQTable(object):
 
     def to_csv(self, filename, delimiter=','):
         if DEBUG:
-            logging.debug('bqorm.BQTable.to_csv({})'.format(filename))
+            logging.debug('bqtools.BQTable.to_csv({})'.format(filename))
 
         with open(filename, 'w', newline='') as csv_file:
             writer = csv.writer(csv_file, delimiter=delimiter)
