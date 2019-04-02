@@ -8,7 +8,7 @@ import random
 import pandas as pd
 from google.cloud import bigquery
 
-import bqorm.conversions
+from fourtytwo import bqtools.conversions
 
 DEBUG = False
 if DEBUG:
