@@ -1,4 +1,4 @@
-import bqorm
+from fourtytwo import bqtools
 
 def test_bqorm_construct_columns():
     schema = [
@@ -6,7 +6,7 @@ def test_bqorm_construct_columns():
         {'name': 'text', 'field_type': 'STRING'},
     ]
     columns = [[1, 2, 3, 4], ['a', 'b', 'c', 'd']]
-    table = bqorm.BQTable(schema=schema, data=columns)
+    table = bqtools.BQTable(schema=schema, data=columns)
     
     assert len(table.schema) == 2
     assert len(table.data) == 2
@@ -23,7 +23,7 @@ def test_bqorm_construct_rows_dicts():
         {'number': 3, 'text': 'c'},
         {'number': 4, 'text': 'd'},
     ]
-    table = bqorm.BQTable(schema=schema, data=rows)
+    table = bqtools.BQTable(schema=schema, data=rows)
 
     assert len(table.schema) == 2
     assert len(table.data) == 2
