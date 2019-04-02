@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/42DIGITAL/bqtools.svg?branch=master)](https://travis-ci.org/42DIGITAL/bqtools) [![PyPI version](https://badge.fury.io/py/bqtools.svg)](https://badge.fury.io/py/bqtools)
+
 # Python Tools for BigQuery
 
 ### Why?
