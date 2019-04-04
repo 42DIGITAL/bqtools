@@ -64,7 +64,7 @@ row = [[6, 'f']]
 table.append(rows)
 ```
 
-### Load table from BigQquery
+### Load table from BigQuery
 ```python
 # requires environment variable GOOGLE_APPLICATION_CREDENTIALS 
 # or parameter credentials='path-to-credentials.json'
