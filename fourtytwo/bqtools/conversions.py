@@ -227,8 +227,13 @@ def to_bytes(value, mode='NULLABLE', infer_required=False):
     return bytes_value
 
 def to_date(value, mode='NULLABLE', infer_required=False):
-    dt_value = to_datetime(value, mode=mode, infer_required=infer_required)
-    return dt_value.date
+    if isinstance(value, datetime.datetime):
+        return value.date()
+    elif isinstance(value, datetime.date):
+        return value
+    else:
+        dt_value = to_datetime(value, mode=mode, infer_required=infer_required)
+        return dt_value.date()
 
 def to_datetime(value, mode='NULLABLE', infer_required=False):
     def handle_none():
