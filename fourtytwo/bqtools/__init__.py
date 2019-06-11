@@ -104,14 +104,21 @@ class BQTable(object):
     def __init__(self, schema=None, data=None):
         if DEBUG:
             logging.debug('bqtools.BQTable.__init__')
-
+        
         self.schema = schema if schema else []
         self.data = data if data else []
     
-    #def __repr__(self):
-    #    pass
+    def __repr__(self):
+        schema_shape = len(self.schema)
+        if len(self.data) > 0:
+            data_shape = (len(self.data[0]), len(self.data))
+        else:
+            data_shape = (0,)
+        return '<bqtools.BQTable(shape_schema={}, shape_data={})>'.format(schema_shape, data_shape)
 
     def __eq__(self, other):
+        if not isinstance(other, BQTable):
+            raise TypeError('other must be of type BQTable')
         return self.schema == other.schema and self.data == other.data
     
     def __setattr__(self, name, value):
@@ -146,13 +153,18 @@ class BQTable(object):
                 new_schema.append(bigquery.SchemaField(**field))
         
         if self.schema and new_schema and new_schema != self.schema:
-            data = self._move_columns(new_schema)
+            # TODO Handle appends to schema
+            # if len(new_schema) > len(self.schema)
+            data = self._move_columns(schema=new_schema)
         else:
             data = self.data
-
-        data = self._typecheck(schema=new_schema, data=data)
-        object.__setattr__(self, '_schema', new_schema)
-        object.__setattr__(self, '_data', data)
+        
+        if data:
+            data = self._typecheck(schema=new_schema, data=data)
+            object.__setattr__(self, '_schema', new_schema)
+            object.__setattr__(self, '_data', data)
+        else:
+            object.__setattr__(self, '_schema', new_schema)
 
     def _set_data(self, data):
         if DEBUG:
@@ -160,14 +172,14 @@ class BQTable(object):
         
         if data and isinstance(data, list):
             if isinstance(data[0], dict):
-                data = _rows_to_columns(data, self.schema)
-        data = self._typecheck(data=data)
+                data = _rows_to_columns(rows=data, schema=self.schema)
+            data = self._typecheck(data=data)
         object.__setattr__(self, '_data', data)
     
     def _move_columns(self, schema):
         if DEBUG:
             logging.debug('bqtools.BQTable._move_columns()')
-
+        
         old_field_names = [field.name for field in self.schema]
         new_field_names = [field.name for field in schema]
         column_order = [old_field_names.index(name) for name in new_field_names]
@@ -219,8 +231,8 @@ class BQTable(object):
         self._rename_columns(mapping=columns)
     
     def append(self, rows):
-        append_columns = _rows_to_columns(rows, self.schema)
-        data = self.data
+        append_columns = _rows_to_columns(rows=rows, schema=self.schema)
+        data = self.data if self.data else [[] for n in range(len(self.schema))]
         for index in range(len(data)):
             data[index] += append_columns[index]
         self.data = data
