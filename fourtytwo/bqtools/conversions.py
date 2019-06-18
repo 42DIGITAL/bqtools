@@ -233,7 +233,10 @@ def to_date(value, mode='NULLABLE', infer_required=False):
         return value
     else:
         dt_value = to_datetime(value, mode=mode, infer_required=infer_required)
-        return dt_value.date()
+        if dt_value is None:
+            return dt_value
+        else:
+            return dt_value.date()
 
 def to_datetime(value, mode='NULLABLE', infer_required=False):
     def handle_none():
