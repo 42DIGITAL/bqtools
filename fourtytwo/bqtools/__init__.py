@@ -22,9 +22,7 @@ def load(filename):
         logging.debug('bqtools.load({})'.format(filename))
 
     with gzip.open(filename, 'rb') as f:
-        table_data = pickle.load(f)
-    for key, value in table_data.items():
-        logging.debug(key)
+        table_data = pickle.load(f)    
 
     table = BQTable(schema=table_data['schema'], data=table_data['data'])
     return table
