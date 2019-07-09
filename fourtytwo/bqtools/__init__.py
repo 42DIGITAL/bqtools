@@ -4,9 +4,11 @@ import logging
 import gzip
 import pickle
 import random
+import time
 
 import pandas as pd
 from google.cloud import bigquery
+import google.api_core
 
 from fourtytwo.bqtools import conversions
 
@@ -27,7 +29,7 @@ def load(filename):
     table = BQTable(schema=table_data['schema'], data=table_data['data'])
     return table
 
-def read_bq(table_ref, credentials=None, limit=10, schema_only=False, columns=None):
+def read_bq(table_ref, credentials=None, limit=10, schema_only=False, columns=None, max_retries=3):
     if DEBUG:
         logging.debug('bqtools.read_bq({})'.format(table_ref))
     
@@ -51,7 +53,17 @@ def read_bq(table_ref, credentials=None, limit=10, schema_only=False, columns=No
         if limit:
             query += ' limit {}'.format(limit)
         job = client.query(query)
-        row_iterator = job.result()
+
+        job_success = False
+        retries = 0
+        while retries < max_retries and not job_success:
+            try:
+                row_iterator = job.result()
+                job_success = True
+            except google.api_core.exceptions.InternalServerError:
+                time.sleep((retries + 1)**2)
+                retries += 1
+                
         rows = [row.values() for row in row_iterator]
         columns = _rows_to_columns(rows=rows, schema=schema)
         table.data = columns
@@ -278,7 +290,7 @@ class BQTable(object):
         data = {field.name: self.data[index] for index, field in enumerate(self.schema)}
         return pd.DataFrame(data)
 
-    def to_bq(self, table_ref, credentials=None, mode='append'):
+    def to_bq(self, table_ref, credentials=None, mode='append', max_retries=3):
         if DEBUG:
             logging.debug('bqtools.BQTable.to_bq({})'.format(table_ref))
 
@@ -307,7 +319,17 @@ class BQTable(object):
                 job_config=job_config,
                 job_id_prefix='load_table_from_file'
             )
-            load_job.result()
+
+            job_success = False
+            retries = 0
+            while retries < max_retries and not job_success:
+                try:
+                    load_job.result()
+                    job_success = True
+                except google.api_core.exceptions.InternalServerError:
+                    time.sleep((retries + 1)**2)
+                    retries += 1
+
         os.remove(tmpfile)
 
     def to_csv(self, filename, delimiter=','):
