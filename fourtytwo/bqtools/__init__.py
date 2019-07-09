@@ -165,9 +165,19 @@ class BQTable(object):
                 new_schema.append(bigquery.SchemaField(**field))
         
         if self.schema and new_schema and new_schema != self.schema:
-            # TODO Handle appends to schema
-            # if len(new_schema) > len(self.schema)
-            data = self._move_columns(schema=new_schema)
+            data_shape = (len(self.data[0]), len(self.data))
+            if len(new_schema) > len(self.schema) and data_shape[0] > 0:
+                # append None-columns for new fields to the end of schema and data
+                # then order columns
+                data = self.data.copy()
+                tmp_schema = self.schema.copy()
+                for field in new_schema:
+                    if field not in tmp_schema:
+                        data.append([None] * data_shape[0])
+                        tmp_schema.append(field)
+                data = self._move_columns(new_schema=new_schema, data=data, schema=tmp_schema)
+            else:
+                data = self._move_columns(new_schema=new_schema)
         else:
             data = self.data
         
@@ -188,14 +198,20 @@ class BQTable(object):
             data = self._typecheck(data=data)
         object.__setattr__(self, '_data', data)
     
-    def _move_columns(self, schema):
+    def _move_columns(self, new_schema, data=None, schema=None):
         if DEBUG:
             logging.debug('bqtools.BQTable._move_columns()')
         
-        old_field_names = [field.name for field in self.schema]
-        new_field_names = [field.name for field in schema]
+        if isinstance(schema, list):
+            old_field_names = [field.name for field in schema]
+        else:
+            old_field_names = [field.name for field in self.schema]
+        new_field_names = [field.name for field in new_schema]
         column_order = [old_field_names.index(name) for name in new_field_names]
-        return [self.data[index] for index in column_order]
+        if isinstance(data, list):
+            return [data[index] for index in column_order]
+        else:
+            return [self.data[index] for index in column_order]
 
     def _rename_columns(self, mapping):
         if DEBUG:
