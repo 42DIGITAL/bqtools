@@ -52,7 +52,7 @@ def test_bqtools_append_dict():
     assert len(table.data) == 2
     assert len(table.rows()) == 2
 
-def test_bqtools_append_schema():
+def test_bqtools_set_new_schema():
     schema = [
         {'name': 'number', 'field_type': 'INTEGER'},
         {'name': 'text', 'field_type': 'STRING'},
@@ -65,9 +65,27 @@ def test_bqtools_append_schema():
     ]
     table = bqtools.BQTable(schema=schema, data=rows)
     
-    table.schema += [{'name': 'test', 'field_type': 'STRING'}]
     table.schema = table.schema + [{'name': 'test', 'field_type': 'STRING'}]
     assert len(table.schema) == 3
     assert len(table.data) == 3
     assert len(table.rows()) == 4
+    
+# def test_bqtools_iadd_insert_schema():
+#     schema = [
+#         {'name': 'number', 'field_type': 'INTEGER'},
+#         {'name': 'text', 'field_type': 'STRING'},
+#     ]
+#     rows = [
+#         {'number': 1, 'text': 'a'},
+#         {'number': 2, 'text': 'b'},
+#         {'number': 3, 'text': 'c'},
+#         {'number': 4, 'text': 'd'},
+#     ]
+#     table = bqtools.BQTable(schema=schema, data=rows)
+    
+#     table.schema += [{'name': 'test', 'field_type': 'STRING'}]
+#     table.schema.insert(1, {'name': 'test', 'field_type': 'STRING'})
+#     assert len(table.schema) == 3
+#     assert len(table.data) == 3
+#     assert len(table.rows()) == 4
     

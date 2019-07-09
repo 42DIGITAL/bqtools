@@ -4,9 +4,11 @@ import logging
 import gzip
 import pickle
 import random
+import time
 
 import pandas as pd
 from google.cloud import bigquery
+import google.api_core
 
 from fourtytwo.bqtools import conversions
 
@@ -27,7 +29,7 @@ def load(filename):
     table = BQTable(schema=table_data['schema'], data=table_data['data'])
     return table
 
-def read_bq(table_ref, credentials=None, limit=10, schema_only=False, columns=None):
+def read_bq(table_ref, credentials=None, limit=10, schema_only=False, columns=None, max_retries=3):
     if DEBUG:
         logging.debug('bqtools.read_bq({})'.format(table_ref))
     
@@ -51,7 +53,17 @@ def read_bq(table_ref, credentials=None, limit=10, schema_only=False, columns=No
         if limit:
             query += ' limit {}'.format(limit)
         job = client.query(query)
-        row_iterator = job.result()
+
+        job_success = False
+        retries = 0
+        while retries < max_retries and not job_success:
+            try:
+                row_iterator = job.result()
+                job_success = True
+            except google.api_core.exceptions.InternalServerError:
+                time.sleep((retries + 1)**2)
+                retries += 1
+                
         rows = [row.values() for row in row_iterator]
         columns = _rows_to_columns(rows=rows, schema=schema)
         table.data = columns
@@ -153,9 +165,19 @@ class BQTable(object):
                 new_schema.append(bigquery.SchemaField(**field))
         
         if self.schema and new_schema and new_schema != self.schema:
-            # TODO Handle appends to schema
-            # if len(new_schema) > len(self.schema)
-            data = self._move_columns(schema=new_schema)
+            data_shape = (len(self.data[0]), len(self.data))
+            if len(new_schema) > len(self.schema) and data_shape[0] > 0:
+                # append None-columns for new fields to the end of schema and data
+                # then order columns
+                data = self.data.copy()
+                tmp_schema = self.schema.copy()
+                for field in new_schema:
+                    if field not in tmp_schema:
+                        data.append([None] * data_shape[0])
+                        tmp_schema.append(field)
+                data = self._move_columns(new_schema=new_schema, data=data, schema=tmp_schema)
+            else:
+                data = self._move_columns(new_schema=new_schema)
         else:
             data = self.data
         
@@ -176,14 +198,20 @@ class BQTable(object):
             data = self._typecheck(data=data)
         object.__setattr__(self, '_data', data)
     
-    def _move_columns(self, schema):
+    def _move_columns(self, new_schema, data=None, schema=None):
         if DEBUG:
             logging.debug('bqtools.BQTable._move_columns()')
         
-        old_field_names = [field.name for field in self.schema]
-        new_field_names = [field.name for field in schema]
+        if isinstance(schema, list):
+            old_field_names = [field.name for field in schema]
+        else:
+            old_field_names = [field.name for field in self.schema]
+        new_field_names = [field.name for field in new_schema]
         column_order = [old_field_names.index(name) for name in new_field_names]
-        return [self.data[index] for index in column_order]
+        if isinstance(data, list):
+            return [data[index] for index in column_order]
+        else:
+            return [self.data[index] for index in column_order]
 
     def _rename_columns(self, mapping):
         if DEBUG:
@@ -278,7 +306,7 @@ class BQTable(object):
         data = {field.name: self.data[index] for index, field in enumerate(self.schema)}
         return pd.DataFrame(data)
 
-    def to_bq(self, table_ref, credentials=None, mode='append'):
+    def to_bq(self, table_ref, credentials=None, mode='append', max_retries=3):
         if DEBUG:
             logging.debug('bqtools.BQTable.to_bq({})'.format(table_ref))
 
@@ -307,7 +335,17 @@ class BQTable(object):
                 job_config=job_config,
                 job_id_prefix='load_table_from_file'
             )
-            load_job.result()
+
+            job_success = False
+            retries = 0
+            while retries < max_retries and not job_success:
+                try:
+                    load_job.result()
+                    job_success = True
+                except google.api_core.exceptions.InternalServerError:
+                    time.sleep((retries + 1)**2)
+                    retries += 1
+
         os.remove(tmpfile)
 
     def to_csv(self, filename, delimiter=','):
