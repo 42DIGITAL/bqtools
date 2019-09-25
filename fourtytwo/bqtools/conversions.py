@@ -5,10 +5,11 @@ import logging
 import json
 
 import dateutil
+import pandas as pd
 
 NoneType = type(None)
 
-def convert(column, field_type='STRING', mode='NULLABLE', infer_required=False):
+def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_required=False):
     field_type = field_type.upper()
     mode = mode.upper()
 
@@ -52,7 +53,29 @@ def convert(column, field_type='STRING', mode='NULLABLE', infer_required=False):
         converted_column = [
             to_timestamp(value, mode, infer_required) for value in column
         ]
-    elif field_type in ['STRUCT', 'ARRAY', 'GEOGRAPHY']:
+    elif field_type == 'STRUCT' or field_type == 'RECORD':
+        if not fields:
+            raise ValueError('Fields must be provided for STRUCT/RECORD')
+        if mode == 'REPEATED':
+            if not isinstance(column[0], list):
+                raise ValueError('For REPEATED mode in STRUCT/RECORD a list of dicts must be provided for each row')
+            converted_column = []
+            for r in column:
+                columns = pd.DataFrame(r).to_dict('list')
+                output = {}
+                for f in fields:
+                    output[f.name] = convert(columns.get(f.name, []), f.field_type, f.mode, f.fields)
+                converted_column.append(pd.DataFrame(output).to_dict('records'))
+        elif mode == 'NULLABLE':
+            if not isinstance(column[0], dict):
+                raise ValueError('For NULLABLE mode in STRUCT/RECORD only one dict is accepted per row')
+            columns = pd.DataFrame(column).to_dict('list')
+            output = {}
+            for f in fields:
+                output[f.name] = convert(columns.get(f.name, []), f.field_type, f.mode, f.fields)
+            converted_column = pd.DataFrame(output).to_dict('records')
+
+    elif field_type in ['ARRAY', 'GEOGRAPHY']:
         raise NotImplementedError('Types STRUCT, ARRAY and GEOGRAPHY are not yet implemented.')
     else:
         raise ValueError('{} not a valid field_type.'.format(field_type))

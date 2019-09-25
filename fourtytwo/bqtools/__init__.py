@@ -5,6 +5,7 @@ import gzip
 import pickle
 import random
 import time
+import json
 
 import pandas as pd
 from google.cloud import bigquery
@@ -160,6 +161,14 @@ class BQTable(object):
             elif isinstance(field, (tuple, list)):
                 new_schema.append(bigquery.SchemaField(*field))
             elif isinstance(field, dict):
+                if field['field_type']== 'RECORD':
+                    if field.get('fields', None):
+                        fields = []
+                        for f in field['fields']:
+                            fields.append(bigquery.SchemaField(**f))
+                        field['fields'] = fields
+                    else:
+                        raise ValueError('fields not specified for field type RECORD')
                 new_schema.append(bigquery.SchemaField(**field))
         
         if self.schema and new_schema and new_schema != self.schema:
@@ -243,7 +252,8 @@ class BQTable(object):
                     conversions.convert(
                         data[index], 
                         field.field_type,
-                        field.mode
+                        field.mode,
+                        field.fields
                     )
                 )
             return typechecked_columns
@@ -304,7 +314,7 @@ class BQTable(object):
         data = {field.name: self.data[index] for index, field in enumerate(self.schema)}
         return pd.DataFrame(data)
 
-    def to_bq(self, table_ref, credentials=None, mode='append', max_retries=3):
+    def to_bq(self, table_ref, credentials=None, mode='append', file='csv', max_retries=3):
         if DEBUG:
             logging.debug('bqtools.BQTable.to_bq({})'.format(table_ref))
 
@@ -316,13 +326,20 @@ class BQTable(object):
         if isinstance(table_ref, str):
             table_ref = bigquery.TableReference.from_string(table_ref)
 
-        tmpfile = 'tmpfile_{}.csv'.format(random.randint(1000,9999))
-        self.to_csv(tmpfile, delimiter=',')
-
+        if file == 'csv':
+            tmpfile = 'tmpfile_{}.csv'.format(random.randint(1000,9999))
+            self.to_csv(tmpfile, delimiter=',')
+        elif file == 'json':
+            tmpfile = 'tmpfile_{}.json'.format(random.randint(1000,9999))
+            self.to_json(tmpfile)
+        
         job_config = bigquery.LoadJobConfig()
         job_config.autodetect = False
         job_config.create_disposition = 'CREATE_IF_NEEDED'
-        job_config.source_format = bigquery.SourceFormat.CSV
+        if file == 'csv':
+            job_config.source_format = bigquery.SourceFormat.CSV
+        elif file == 'json':
+            job_config.source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
         job_config.write_disposition = 'WRITE_TRUNCATE' if mode =='overwrite' else 'WRITE_APPEND'
         job_config.schema = self.schema
 
@@ -346,6 +363,8 @@ class BQTable(object):
 
         os.remove(tmpfile)
 
+        return load_job
+
     def to_csv(self, filename, delimiter=','):
         if DEBUG:
             logging.debug('bqtools.BQTable.to_csv({})'.format(filename))
@@ -354,3 +373,9 @@ class BQTable(object):
             writer = csv.writer(csv_file, delimiter=delimiter)
             writer.writerows(self.rows())
 
+    def to_json(self, filename):
+        #print(self.rows(row_type='dict'))
+        result = [json.dumps(record) for record in self.rows(row_type='dict')]
+        with open(filename, 'w') as obj:
+            for i in result:
+                obj.write(i+'\n')
