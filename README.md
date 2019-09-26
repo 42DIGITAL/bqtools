@@ -22,6 +22,12 @@ from fourtytwo import bqtools
 schema = [
     {'name': 'number', 'field_type': 'INTEGER'},
     {'name': 'text', 'field_type': 'STRING'},
+    {'name': 'struct', 'field_type':'RECORD', 'mode':'REPEATED', 
+        'fields': [
+            {'name':'integer', 'field_type':'INTEGER'},
+            {'name':'text', 'field_type':'STRING'}
+        ]
+    }
 ]
 # valid BigQuery types see: 
 # https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types
@@ -93,6 +99,9 @@ table.rename(columns={'number': 'decimal'})
 # requires environment variable GOOGLE_APPLICATION_CREDENTIALS
 # or parameter credentials='path-to-credentials.json'
 table.to_bq(table_ref, mode='append')
+
+# with STRCT/RECORD in data schema, use file='json' option for uploading data
+table.to_bq(table_ref, mode='append', file='json')
 ```
 
 ### Persist tables locally
