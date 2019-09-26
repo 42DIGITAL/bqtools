@@ -1,4 +1,5 @@
 from fourtytwo import bqtools
+from google.cloud import bigquery
 
 def test_bqtools_construct_columns():
     schema = [
@@ -69,7 +70,20 @@ def test_bqtools_set_new_schema():
     assert len(table.schema) == 3
     assert len(table.data) == 3
     assert len(table.rows()) == 4
-    
+
+def test_bqtools_set_schema():
+    schema = [
+        {'name': 'number', 'field_type': 'INTEGER'},
+        {'name': 'text', 'field_type': 'STRING'},
+        {'name': 'struct', 'field_type': 'RECORD', 'mode': 'REPEATED', 'fields':[
+            {'name': 'int_field', 'field_type': 'INTEGER'},
+            {'name': 'str_field', 'field_type': 'STRING'}
+        ]}
+    ]
+    table = bqtools.BQTable(schema=schema)
+
+    assert all([isinstance(s, bigquery.SchemaField) for s in table.schema])
+    assert all([isinstance(f, bigquery.SchemaField) for f in table.schema[2].fields])
 # def test_bqtools_iadd_insert_schema():
 #     schema = [
 #         {'name': 'number', 'field_type': 'INTEGER'},
