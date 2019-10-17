@@ -31,7 +31,7 @@ schema = [
 ]
 # valid BigQuery types see: 
 # https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types
-# geo, struct and array are currently not/not fully supported
+# geo and array are currently not/not fully supported
 
 # data = columns of lists
 table = bqtools.BQTable(
@@ -99,9 +99,6 @@ table.rename(columns={'number': 'decimal'})
 # requires environment variable GOOGLE_APPLICATION_CREDENTIALS
 # or parameter credentials='path-to-credentials.json'
 table.to_bq(table_ref, mode='append')
-
-# with STRCT/RECORD in data schema, use file='json' option for uploading data
-table.to_bq(table_ref, mode='append', file='json')
 ```
 
 ### Persist tables locally

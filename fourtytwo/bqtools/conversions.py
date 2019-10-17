@@ -53,7 +53,7 @@ def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_requi
         converted_column = [
             to_timestamp(value, mode, infer_required) for value in column
         ]
-    elif field_type == 'STRUCT' or field_type == 'RECORD':
+    elif field_type in ['STRUCT', 'RECORD']:
         if not fields:
             raise ValueError('Fields must be provided for STRUCT/RECORD')
         if mode == 'REPEATED':
@@ -76,7 +76,7 @@ def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_requi
             converted_column = pd.DataFrame(output).to_dict('records')
 
     elif field_type in ['ARRAY', 'GEOGRAPHY']:
-        raise NotImplementedError('Types STRUCT, ARRAY and GEOGRAPHY are not yet implemented.')
+        raise NotImplementedError('Types ARRAY and GEOGRAPHY are not yet implemented.')
     else:
         raise ValueError('{} not a valid field_type.'.format(field_type))
     return converted_column

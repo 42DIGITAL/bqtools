@@ -314,7 +314,7 @@ class BQTable(object):
         data = {field.name: self.data[index] for index, field in enumerate(self.schema)}
         return pd.DataFrame(data)
 
-    def to_bq(self, table_ref, credentials=None, mode='append', file='csv', max_retries=3):
+    def to_bq(self, table_ref, credentials=None, mode='append', max_retries=3):
         if DEBUG:
             logging.debug('bqtools.BQTable.to_bq({})'.format(table_ref))
 
@@ -326,19 +326,20 @@ class BQTable(object):
         if isinstance(table_ref, str):
             table_ref = bigquery.TableReference.from_string(table_ref)
 
-        if file == 'csv':
+        upload_source_format = 'json' if any([f._field_type in ['STRUCT', 'RECORD'] for f in self.schema]) else 'csv'
+        if upload_source_format == 'csv':
             tmpfile = 'tmpfile_{}.csv'.format(random.randint(1000,9999))
             self.to_csv(tmpfile, delimiter=',')
-        elif file == 'json':
+        elif upload_source_format == 'json':
             tmpfile = 'tmpfile_{}.json'.format(random.randint(1000,9999))
             self.to_json(tmpfile)
         
         job_config = bigquery.LoadJobConfig()
         job_config.autodetect = False
         job_config.create_disposition = 'CREATE_IF_NEEDED'
-        if file == 'csv':
+        if upload_source_format == 'csv':
             job_config.source_format = bigquery.SourceFormat.CSV
-        elif file == 'json':
+        elif upload_source_format == 'json':
             job_config.source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
         job_config.write_disposition = 'WRITE_TRUNCATE' if mode =='overwrite' else 'WRITE_APPEND'
         job_config.schema = self.schema
@@ -374,8 +375,6 @@ class BQTable(object):
             writer.writerows(self.rows())
 
     def to_json(self, filename):
-        #print(self.rows(row_type='dict'))
-        result = [json.dumps(record) for record in self.rows(row_type='dict')]
         with open(filename, 'w') as obj:
-            for i in result:
-                obj.write(i+'\n')
+            for r in self.rows(row_type='dict'):
+                obj.write(json.dumps(r)+'\n')
