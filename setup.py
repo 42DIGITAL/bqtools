@@ -13,6 +13,7 @@ setup(
     version = VERSION,
     description = 'Python Tools for BigQuery',
     long_description = LONG_DESCRIPTION,
+    long_description_content_type = 'text/markdown',
     author = 'Jonathan Rahn',
     author_email = 'jonathan.rahn@42digital.de',
     url = 'https://github.com/42DIGITAL/bqtools',
