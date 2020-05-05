@@ -326,7 +326,7 @@ class BQTable(object):
         if isinstance(table_ref, str):
             table_ref = bigquery.TableReference.from_string(table_ref)
 
-        upload_source_format = 'json' if any([f._field_type in ['STRUCT', 'RECORD'] for f in self.schema]) else 'csv'
+        upload_source_format = 'json' if any([f._field_type in ['STRUCT', 'RECORD'] or f._mode=='REPEATED' for f in self.schema]) else 'csv'
         if upload_source_format == 'csv':
             tmpfile = 'tmpfile_{}.csv'.format(random.randint(1000,9999))
             self.to_csv(tmpfile, delimiter=',')
