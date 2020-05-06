@@ -35,7 +35,7 @@ def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_requi
         if mode == 'REPEATED':
             converted_column = []
             for value in column:
-                converted_column.append([to_string(v, mode, infer_required) for v in value])
+                converted_column.append([to_numeric(v, mode, infer_required) for v in value])
         else:
             converted_column = [
                 to_numeric(value, mode, infer_required) for value in column
@@ -44,7 +44,7 @@ def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_requi
         if mode == 'REPEATED':
             converted_column = []
             for value in column:
-                converted_column.append([to_string(v, mode, infer_required) for v in value])
+                converted_column.append([to_float(v, mode, infer_required) for v in value])
         else:
             converted_column = [
                 to_float(value, mode, infer_required) for value in column
@@ -53,7 +53,7 @@ def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_requi
         if mode == 'REPEATED':
             converted_column = []
             for value in column:
-                converted_column.append([to_string(v, mode, infer_required) for v in value])
+                converted_column.append([to_boolean(v, mode, infer_required) for v in value])
         else:
             converted_column = [
                 to_boolean(value, mode, infer_required) for value in column
@@ -62,7 +62,7 @@ def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_requi
         if mode == 'REPEATED':
             converted_column = []
             for value in column:
-                converted_column.append([to_string(v, mode, infer_required) for v in value])
+                converted_column.append([to_bytes(v, mode, infer_required) for v in value])
         else:
             converted_column = [
                 to_bytes(value, mode, infer_required) for value in column
@@ -71,7 +71,7 @@ def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_requi
         if mode == 'REPEATED':
             converted_column = []
             for value in column:
-                converted_column.append([to_string(v, mode, infer_required) for v in value])
+                converted_column.append([to_datetime(v, mode, infer_required) for v in value])
         else:
             converted_column = [
                 to_datetime(value, mode, infer_required) for value in column
@@ -80,7 +80,7 @@ def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_requi
         if mode == 'REPEATED':
             converted_column = []
             for value in column:
-                converted_column.append([to_string(v, mode, infer_required) for v in value])
+                converted_column.append([to_date(v, mode, infer_required) for v in value])
         else:
             converted_column = [
                 to_date(value, mode, infer_required) for value in column
@@ -89,7 +89,7 @@ def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_requi
         if mode == 'REPEATED':
             converted_column = []
             for value in column:
-                converted_column.append([to_string(v, mode, infer_required) for v in value])
+                converted_column.append([to_time(v, mode, infer_required) for v in value])
         else:
             converted_column = [
                 to_time(value, mode, infer_required) for value in column
@@ -98,7 +98,7 @@ def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_requi
         if mode == 'REPEATED':
             converted_column = []
             for value in column:
-                converted_column.append([to_string(v, mode, infer_required) for v in value])
+                converted_column.append([to_timestamp(v, mode, infer_required) for v in value])
         else:
             converted_column = [
                 to_timestamp(value, mode, infer_required) for value in column
