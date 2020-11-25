@@ -14,45 +14,95 @@ def convert(column, field_type='STRING', mode='NULLABLE', fields=[], infer_requi
     mode = mode.upper()
 
     if field_type == 'INTEGER':
-        converted_column = [
-            to_integer(value, mode, infer_required) for value in column
-        ]
+        if mode == 'REPEATED':
+            converted_column = []
+            for value in column:
+                converted_column.append([to_integer(v, mode, infer_required) for v in value])
+        else:
+            converted_column = [
+                to_integer(value, mode, infer_required) for value in column
+            ]
     elif field_type == 'STRING':
-        converted_column = [
-            to_string(value, mode, infer_required) for value in column
-        ]
+        if mode == 'REPEATED':
+            converted_column = []
+            for value in column:
+                converted_column.append([to_string(v, mode, infer_required) for v in value])
+        else:
+            converted_column = [
+                to_string(value, mode, infer_required) for value in column
+            ]
     elif field_type == 'NUMERIC':
-        converted_column = [
-            to_numeric(value, mode, infer_required) for value in column
-        ]
+        if mode == 'REPEATED':
+            converted_column = []
+            for value in column:
+                converted_column.append([to_numeric(v, mode, infer_required) for v in value])
+        else:
+            converted_column = [
+                to_numeric(value, mode, infer_required) for value in column
+            ]
     elif field_type == 'FLOAT':
-        converted_column = [
-            to_float(value, mode, infer_required) for value in column
-        ]
+        if mode == 'REPEATED':
+            converted_column = []
+            for value in column:
+                converted_column.append([to_float(v, mode, infer_required) for v in value])
+        else:
+            converted_column = [
+                to_float(value, mode, infer_required) for value in column
+            ]
     elif field_type == 'BOOLEAN':
-        converted_column = [
-            to_boolean(value, mode, infer_required) for value in column
-        ]
+        if mode == 'REPEATED':
+            converted_column = []
+            for value in column:
+                converted_column.append([to_boolean(v, mode, infer_required) for v in value])
+        else:
+            converted_column = [
+                to_boolean(value, mode, infer_required) for value in column
+            ]
     elif field_type == 'BYTES':
-        converted_column = [
-            to_bytes(value, mode, infer_required) for value in column
-        ]
+        if mode == 'REPEATED':
+            converted_column = []
+            for value in column:
+                converted_column.append([to_bytes(v, mode, infer_required) for v in value])
+        else:
+            converted_column = [
+                to_bytes(value, mode, infer_required) for value in column
+            ]
     elif field_type == 'DATETIME':
-        converted_column = [
-            to_datetime(value, mode, infer_required) for value in column
-        ]
+        if mode == 'REPEATED':
+            converted_column = []
+            for value in column:
+                converted_column.append([to_datetime(v, mode, infer_required) for v in value])
+        else:
+            converted_column = [
+                to_datetime(value, mode, infer_required) for value in column
+            ]
     elif field_type == 'DATE':
-        converted_column = [
-            to_date(value, mode, infer_required) for value in column
-        ]
+        if mode == 'REPEATED':
+            converted_column = []
+            for value in column:
+                converted_column.append([to_date(v, mode, infer_required) for v in value])
+        else:
+            converted_column = [
+                to_date(value, mode, infer_required) for value in column
+            ]
     elif field_type == 'TIME':
-        converted_column = [
-            to_time(value, mode, infer_required) for value in column
-        ]
+        if mode == 'REPEATED':
+            converted_column = []
+            for value in column:
+                converted_column.append([to_time(v, mode, infer_required) for v in value])
+        else:
+            converted_column = [
+                to_time(value, mode, infer_required) for value in column
+            ]
     elif field_type == 'TIMESTAMP':
-        converted_column = [
-            to_timestamp(value, mode, infer_required) for value in column
-        ]
+        if mode == 'REPEATED':
+            converted_column = []
+            for value in column:
+                converted_column.append([to_timestamp(v, mode, infer_required) for v in value])
+        else:
+            converted_column = [
+                to_timestamp(value, mode, infer_required) for value in column
+            ]
     elif field_type in ['STRUCT', 'RECORD']:
         if not fields:
             raise ValueError('Fields must be provided for STRUCT/RECORD')
